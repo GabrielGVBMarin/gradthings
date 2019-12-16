@@ -1,0 +1,8 @@
+		Fila de Prioridades
+		===================
+
+	min heap			max heap
+	  7				   800
+     20       90			3       780
+   21 24   1000  91		      1   2   779  0
+
