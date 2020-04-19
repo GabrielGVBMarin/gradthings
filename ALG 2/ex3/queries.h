@@ -63,11 +63,12 @@ void removeRegistro(index_p*, int, int);
 void finalizaExecucao(FILE*);
 int qsortCompararIndexSec(const void *, const void *);
 // listaInvertidaElem* pesquisaListaInvertida(int,);
-tipoChave* pesquisaListaInvertida(listaInvertidaElem*, int);
-int insereListaInvertida(int, int);
+tipoChave* pesquisaListaInvertida(listaInvertidaElem*, int, int);
+int insereListaInvertida(int, int, int);
 listaInvertidaElem* leituraDaListaInvertida();
 void dumpFile(FILE*);
 void dumpIndexPrimario(index_p*, int);
 void dumpArquivoIndexPrimario();
+void dumpListaInvertida();
 
 #endif

@@ -10,7 +10,7 @@
 int main(void) {
 	FILE *df;
 	int comando= 0, contadorDeRegistros = 0, auxiliar = 0;
-	tipoAluno *aluno = NULL;
+	tipoAluno *aluno = (tipoAluno*) calloc(1, sizeof(tipoAluno));
 
 
 	index_p *indexPrimario = carregaIndex(&contadorDeRegistros);
@@ -37,6 +37,7 @@ int main(void) {
 			insereIndex(df, &indexPrimario, *aluno, &contadorDeRegistros);
 			printf("ANTES DO INSERE INDEX SEC\n");
 			insereIndexSec(df, &indexSecundario, &listaInvertida, *aluno, contadorDeRegistros);
+			dumpListaInvertida();
 			printf("ANTES INSERE REGISTRO\n");
 			insereRegistro(df, *aluno);
 			printf("Aluno inserido !!!\n");
@@ -53,18 +54,27 @@ int main(void) {
 				printf("Primeiro nome : %s\n", aluno->nome);
 				printf("Sobrenome : %s\n", aluno->sobrenome);
 				printf("Abreviacao do curso (BCC, BSI, ESTAT...) : %s\n", aluno->curso);
-				printf("Nota : %d\n", aluno->numUSP);
+				printf("Nota : %f\n", aluno->nota);
 			}
 			break;
 		case 3:
 			// Pesquisar registro pelo sobrenome
 			printf("\nInsira o sobrenome : ");
-			scanf("%[^\n]s", aluno->sobrenome);
-			aux = pesquisaListaInvertida(listaInvertida, pesquisaChaveSecundaria(indexSecundario, aluno->sobrenome));
+			scanf("\n%[^\n]s", aluno->sobrenome);
+			aux = pesquisaListaInvertida(listaInvertida, pesquisaChaveSecundaria(indexSecundario, aluno->sobrenome), contadorDeRegistros);
 			auxiliar = sizeof(aux)/sizeof(listaInvertidaElem);
 			printf("TAMANHO DA LISTA INVERTIDA : %d\n", auxiliar);
 			for (int i = 0; i < auxiliar; i++) {
 				printf("NUSP ENCONTRADO : %d\n", aux[i]);
+				aluno = pesquisaRegistro(df, pesquisaIndex(indexPrimario, aux[i], contadorDeRegistros));
+				if (!aluno) printf("NUSP não encontrado !!!\n");
+				else {
+					printf("NUSP : %d\n", aluno->numUSP);
+					printf("Primeiro nome : %s\n", aluno->nome);
+					printf("Sobrenome : %s\n", aluno->sobrenome);
+					printf("Abreviacao do curso (BCC, BSI, ESTAT...) : %s\n", aluno->curso);
+					printf("Nota : %f\n", aluno->nota);
+				}
 			}
 			break;
 		case 4:
@@ -81,14 +91,14 @@ int main(void) {
 				// remover pelo sobrenome
 				printf("\nInsira o sobrenome : ");
 				scanf("%[^\n]s", aluno->sobrenome);
-				aux = pesquisaListaInvertida(listaInvertida, pesquisaChaveSecundaria(indexSecundario, aluno->sobrenome));
+				aux = pesquisaListaInvertida(listaInvertida, pesquisaChaveSecundaria(indexSecundario, aluno->sobrenome), contadorDeRegistros);
 				auxiliar = sizeof(aux)/sizeof(listaInvertidaElem);
 				printf("TAMANHO DA LISTA INVERTIDA : %d\n", auxiliar);
 				for (int i = 0; i < auxiliar; i++) {
 					printf("NUSP ENCONTRADO : %d\n", aux[i]);
 				}
 				printf("Digite o NUSP que deseje remover : ");
-				scanf("%d", aluno->numUSP);
+				scanf("%d", &aluno->numUSP);
 				removeRegistro(indexPrimario, aluno->numUSP, contadorDeRegistros);
 				printf("Removido !!!\n");
 				} else {
@@ -97,7 +107,7 @@ int main(void) {
 			break;
 		case 0:
 			// Escreve dados
-
+			
 			// Finalizar registro
 			if (aluno) free(aluno);
 			if (indexPrimario) free(indexPrimario);

@@ -60,7 +60,7 @@ void insereIndex(FILE *arq, index_p **index, tipoAluno aluno, int *contador) {
 	(*index) = (index_p*) realloc((*index), (*contador+1)*sizeof(index_p));
 
 	(*index)[(*contador)].chavePrimaria = aluno.numUSP;
-	(*index)[(*contador)].pos = quantidadeDeRegistrosNoArquivo(arq);
+	(*index)[(*contador)].pos = *contador;// quantidadeDeRegistrosNoArquivo(arq);
 
 	printf("INSERE INDEX CHAVE PRIMARIA : %d\n", (*index)[(*contador)].chavePrimaria);
 	printf("INSEREINDEX POSICAO NO ARQUIVO : %d\n", (*index)[(*contador)].pos);
@@ -82,10 +82,11 @@ int qsortComparar(const void *a, const void *b) {
 }
 
 void insereIndexSec(FILE *arq, index_s **index, listaInvertidaElem **listaInvertida, tipoAluno aluno, int contador) {
-	(*index) = (index_s*) realloc((*index), contador*sizeof(index_s));
+	(*index) = (index_s*) realloc((*index), contador*sizeof(index_s));  // ISSO NEM SEMPRE ACONTECE NO INDEX SECUNDARIO
+																		// PODEM TER ELEMENTOS IGUAL E NÃO ADICIONA OUTRO
 
     printf("CHEGOU INSERE INDEX SEC\n");
-	(*index)[contador-1].pos = insereListaInvertida(aluno.numUSP, pesquisaChaveSecundaria((*index), aluno.sobrenome));
+	(*index)[contador-1].pos = insereListaInvertida(aluno.numUSP, pesquisaChaveSecundaria((*index), aluno.sobrenome), (contador-1));
 	strcpy((*index)[contador-1].sobrenome, aluno.sobrenome);
     printf("FINALISOU INDEX SEC\n");
 
@@ -119,19 +120,6 @@ void insereRegistro(FILE *arq, tipoAluno aluno) {
 	fseek(arq, 0, SEEK_END);
 	fwrite(&aluno, sizeof(tipoAluno), 1, arq);
 	rewind(arq);
-// 	if (0 > pesquisaIndex(*chave, index, counter)) { // pesquisa index retorna negativo se registro ja existir
-// 		fwrite(&aluno, sizeof(tipoAluno), 1, arq);
-// 		*chave = aluno.numUSP;
-
-// 		fseek(arq, 0, SEEK_END);
-// 		int final = (int) ftell(arq);
-// 		rewind(arq);
-
-// 		return ((final/sizeof(tipoAluno))-1); // Retorna posição que o aluno foi inserido
-// 	} else {
-// 		printf("Aluno já cadastrado !!!!\n");
-// 		return -pesquisaIndex(*chave, index, counter); // Negativo pra demonstrar que ja foi inserido
-// 	}
 }
 
 int pesquisaIndex(index_p *indexPrimario, int nusp, int contador) {
@@ -165,59 +153,21 @@ int pesquisaChaveSecundaria(index_s *index, char *sobrenome) {
 
 	printf("COMEÇO PESQUISA CHAVE SECUNDARIA\n");
     int tamanho = (sizeof(*index)/sizeof(index_s)); // talvez
+	printf("TAMANHO DO INDEX SECUNDARIO : %d\n", tamanho);
     int i;
 
     for (i = 0; i < tamanho; i++) {
+		printf("NOME DO INDEX: %s\n", index[i].sobrenome);
+		printf("NOME PROCURADO: %s\n", sobrenome);
         if (strstr(index[i].sobrenome, sobrenome) != NULL) {
 			printf("STRING : %s\n", strstr(index[i].sobrenome, sobrenome));
 			printf("FINAL PESQUISA CHAVE SECUNDARIA: %d\n", index[i].pos);
-			return index[i].pos;
+			return (index[i].pos-1);
 		}
     }
-
 	printf("FINAL PESQUISA CHAVE SECUNDARIA\n");
     return -1;
-    // int i = 0;
-	// int f = (sizeof(*index)/sizeof(index_s))-1;
-	// int meio;
-
-    // while (i <= f) {
-    //     meio = (i + f)/2;
-    //     if (strstr(index[meio].sobrenome, &sobrenome) != NULL) return index[meio].pos;
-    //     else if (strcmp(index[meio].sobrenome, sobrenome) < 0) i = meio + 1;
-    //     else f = meio - 1;
-    // }
-	// *** Busca binaria ***
-	// while (i <= f) {
-	// 	meio = (i + f)/2;
- 	// 	if (indexPrimario[meio].chavePrimaria == nusp) return indexPrimario[meio].pos;
-	// 	else if (nusp > indexPrimario[meio].chavePrimaria) i = meio+1;
-	// 	else f = meio-1;
-	// }
-
 }
-
-// listaInvertidaElem* pesquisaListaInvertida(int pos) {
-// 	listaInvertidaElem *index = NULL;
-// 	int contador = 0;
-// 	listaInvertidaElem sample;
-
-// 	FILE *arq = fopen("lista_invertida.dat", "r+");
-// 	rewind(arq);
-
-// 	fseek(arq, pos*sizeof(listaInvertidaElem), SEEK_CUR);
-// 	while(fread(&sample, sizeof(listaInvertidaElem), 1, arq) && sample.posDoProximo != -1) {
-// 		contador++;
-// 		index = (listaInvertidaElem*) realloc(index, contador);
-// 		index[contador-1].NUSP = sample.NUSP;
-// 		index[contador-1].posDoProximo = sample.posDoProximo;
-// 	}
-// 	index[contador].NUSP = sample.NUSP;
-// 	index[contador].posDoProximo = sample.posDoProximo;
-
-// 	return index;
-
-// }
 
 listaInvertidaElem* leituraDaListaInvertida() {
 
@@ -235,19 +185,15 @@ listaInvertidaElem* leituraDaListaInvertida() {
     return listaInvertida;
 }
 
-int insereListaInvertida(int nusp, int pos) { // retorna a posição que foi inserido se já tiver algo retorna 0
-	printf("COMEÇO INSERE LISTA INVERTIDA\n");
+int insereListaInvertida(int nusp, int pos, int tamanhoDaLista) { // retorna a posição que foi inserido se já tiver algo retorna 0
+	printf("\n\nCOMEÇO INSERE LISTA INVERTIDA\n");
 
     listaInvertidaElem *lista = leituraDaListaInvertida();
 	printf("DEPOIS DA LEITURA DA LISTA\n");
     FILE *arq = fopen("lista_invertida.dat", "a+");
-    listaInvertidaElem elem;
     int auxPos = pos;
-	int tamanhoDaLista = sizeof(*lista)/sizeof(listaInvertidaElem)+1; // talvez
-	lista = (listaInvertidaElem*) realloc(lista, tamanhoDaLista);
-
-    // elem.NUSP = nusp;
-    // elem.posDoProximo = -1;
+	printf("TAMANHO DA LISTA INVERTIDA : %d\n", tamanhoDaLista);
+	lista = (listaInvertidaElem*) realloc(lista, tamanhoDaLista+1);
 
 	lista[tamanhoDaLista].NUSP = nusp;
 	lista[tamanhoDaLista].posDoProximo = -1;
@@ -259,29 +205,39 @@ int insereListaInvertida(int nusp, int pos) { // retorna a posição que foi ins
         while (lista[auxPos].posDoProximo != -1) auxPos = lista[auxPos].posDoProximo;
         lista[auxPos].posDoProximo = sizeof(*lista)/sizeof(listaInvertidaElem);
     }
-	printf("DEPOIS DO WHILE PERCORRENDO");
 
-    fwrite(&elem, sizeof(listaInvertidaElem), 1, arq);
-    return sizeof(*lista)/sizeof(listaInvertidaElem);
-	printf("FINAL INSERE LISTA INVERTIDA\n");
+	printf("DEPOIS DO WHILE PERCORRENDO\n");
+
+	fseek(arq, 0, SEEK_END);
+    fwrite(&lista[tamanhoDaLista], sizeof(listaInvertidaElem), 1, arq);
+	printf("FINAL INSERE LISTA INVERTIDA\n\n");
+	fclose(arq);
+    return tamanhoDaLista;
 }
 
-tipoChave* pesquisaListaInvertida(listaInvertidaElem *listaInvertida, int pos) { // Retorna a posição do sobrenome
-    int tamanhoDaLista = sizeof(*listaInvertida)/sizeof(listaInvertidaElem);
+tipoChave* pesquisaListaInvertida(listaInvertidaElem *listaInvertida, int pos, int tamanhoDaLista) { // Retorna a posição do sobrenome
+	printf("CHEGOU PESQUISA LISTA INVERTIDA\n");
+	printf("TAMANHO DA LISTA INVERTIDA : %d\n", tamanhoDaLista);
+	listaInvertida = leituraDaListaInvertida();
     if (tamanhoDaLista < pos) return NULL;
 
     int contador = 0;
     tipoChave *listaDeChaves = (tipoChave*) calloc(1, sizeof(tipoChave));
 
-    do {
+	printf("ANTES DO DO WHILE\n");
 
+    do {
+		printf("POS QUE PEGA: %d\n", pos);
         listaDeChaves[contador] = listaInvertida[pos].NUSP;
+		printf("NUSP: %d\n", listaInvertida[pos].NUSP);
+		printf("POS DO PROXIMO: %d\n", listaInvertida[pos].posDoProximo);
         contador++;
         listaDeChaves = (tipoChave*) realloc(listaDeChaves, contador+1);
         pos = listaInvertida[pos].posDoProximo;
 
-    } while(listaInvertida[pos].posDoProximo != -1);
-    
+    } while(pos != -1);
+    printf("ACABOU A PESQUISA LISTA INVERTIDA\n");
+
     return listaDeChaves;
 }
 
@@ -299,7 +255,7 @@ tipoAluno* pesquisaRegistro(FILE *arq, int pos) {
     if (pos == -1) return NULL;
 	tipoAluno *aluno = (tipoAluno*) calloc(1, sizeof(tipoAluno));
 
-	fseek(arq, sizeof(tipoAluno)*pos, SEEK_SET);
+	fseek(arq, pos, SEEK_SET); // mudei de sizeof(tipoAluno)*pos para só pos
 
 	fread(aluno, sizeof(tipoAluno), 1, arq);
 
@@ -350,6 +306,17 @@ void dumpIndexPrimario(index_p *index, int contador) {
 	}
 }
 
+void dumpListaInvertida() {
+	FILE *arq = fopen("lista_invertida.dat", "r+");
+	listaInvertidaElem elem;
+	printf("\n\n");
+	while(fread(&elem, sizeof(listaInvertidaElem), 1, arq)) {
+		printf("NUSP: %d\n", elem.NUSP);
+		printf("POS DO PROXIMO: %d\n", elem.posDoProximo);
+	}
+	fclose(arq);
+}
+
 void dumpArquivoIndexPrimario() {
 	FILE *arq = fopen("index_primario.dat", "r+");
 	index_p index;
@@ -359,4 +326,20 @@ void dumpArquivoIndexPrimario() {
 		printf("POSICAO NO ARQUIVO BRUTO: %d\n", index.pos);
 	}
 	fclose(arq);
+}
+
+void escreveIndexPrimario(index_p *indexPrimario) {
+	// int tamanho = sizeof(*indexPrimario)/sizeof()
+}
+
+void escreveIndexSecundario() {
+
+}
+
+void escreveListaInvertida() {
+
+}
+
+void escreveArquivo() {
+
 }
