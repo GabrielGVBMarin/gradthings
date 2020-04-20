@@ -17,19 +17,14 @@
 #include <strings.h>
 
 typedef int tipoChave;
-
 // Chave primaria é o número USP
 typedef struct {
-	/* aqui devem ser definidos os elementos necessários para compor o índice primário */
-	/* voce pode utilizar variáveis estáticas ou dinâmicas */
 	int chavePrimaria;
 	int pos;
 } index_p;
 
 // Chave secundária é o sobrenome do aluno
 typedef struct {
-	/* aqui devem ser definidos os elementos necessários para compor o índice secundário */
-	/* voce pode utilizar variáveis estáticas ou dinâmicas */
 	char sobrenome[TAM];
 	int pos;
 } index_s;
@@ -52,23 +47,28 @@ index_p* carregaIndex(int*);
 void insereIndex(FILE*, index_p**, tipoAluno, int*);
 int qsortComparar(const void*, const void*);
 index_s* carregaIndexSecundario(int*);
-void insereIndexSec(FILE*, index_s**, listaInvertidaElem**, tipoAluno, int);
+void insereIndexSec(FILE*, index_s**, listaInvertidaElem**, tipoAluno, int, int*);
 tipoAluno* leituraDosDadosDoAluno();
 void insereRegistro(FILE*, tipoAluno);
 int pesquisaIndex(index_p*, int, int);
-int pesquisaChaveSecundaria(index_s*, char*);
+int pesquisaChaveSecundaria(index_s*, char*, int*);
 tipoAluno* pesquisaRegistro(FILE*, int);
 void imprimeRegistro();
-void removeRegistro(index_p*, int, int);
+void removeRegistro(index_p**, index_s**, int, int*, int*);
+void removeArquivo(index_p**, int, int*);
+void removeIndexSecundario(index_s**, int, int*);
 void finalizaExecucao(FILE*);
 int qsortCompararIndexSec(const void *, const void *);
-// listaInvertidaElem* pesquisaListaInvertida(int,);
-tipoChave* pesquisaListaInvertida(listaInvertidaElem*, int, int);
+tipoChave* pesquisaListaInvertida(listaInvertidaElem*, int, int, int*);
 int insereListaInvertida(int, int, int);
 listaInvertidaElem* leituraDaListaInvertida();
 void dumpFile(FILE*);
 void dumpIndexPrimario(index_p*, int);
 void dumpArquivoIndexPrimario();
 void dumpListaInvertida();
+void dumpListaSecundaria(index_s*, int);
+void dumpArquivoListaSecundaria();
+void escreveIndexPrimario(index_p*, int);
+void escreveIndexSecundario(index_s*, int);
 
 #endif

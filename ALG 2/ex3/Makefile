@@ -1,9 +1,10 @@
-all: run
+# Gabriel Guimarães Vilas Boas Marin NUSP: 11218521
+all: compile run
 
-run: compile
+run: 
 	./bin
 compile:
 	gcc -c queries.c main.c
-	gcc -o bin queries.o main.o
+	gcc -o bin  queries.o main.o
 delete:
-	rm bin alunos.dat index_prim.dat index_sec.dat queries.o main.o queriesheaders.o lista_invertida.dat
+	rm bin alunos.dat index_primario.dat index_secundario.dat queries.o main.o lista_invertida.dat
