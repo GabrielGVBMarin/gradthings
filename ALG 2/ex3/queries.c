@@ -51,33 +51,32 @@ index_s* carregaIndexSecundario(int *contador) {
 	return index; // Retorna index secundario
 }
 
-// PAREI AQUI OS COMENTÁRIO
 void insereIndex(FILE *arq, index_p **index, tipoAluno aluno, int *contador) {
 	(*index) = (index_p*) realloc((*index), (*contador+1)*sizeof(index_p));
 
 	(*index)[(*contador)].chavePrimaria = aluno.numUSP;
-	(*index)[(*contador)].pos = *contador;// quantidadeDeRegistrosNoArquivo(arq);
+	(*index)[(*contador)].pos = *contador; // Coloca a pos do inserido
 
 	*contador += 1;
 	qsort((*index), (*contador), sizeof(index_p), qsortComparar); // Ordena o vetor de index
 
 }
 
-int qsortComparar(const void *a, const void *b) {
+int qsortComparar(const void *a, const void *b) { // Func de comparação pro qsort
 	return ( (*(index_p*)a).chavePrimaria - (*(index_p*)b).chavePrimaria );
 }
 
 void insereIndexSec(FILE *arq, index_s **index, listaInvertidaElem **listaInvertida, tipoAluno aluno, int contador,
 						int *contadorIndexSecundario) {
-	int posAux = pesquisaChaveSecundaria((*index), aluno.sobrenome, &(*contadorIndexSecundario));
+	int posAux = pesquisaChaveSecundaria((*index), aluno.sobrenome, &(*contadorIndexSecundario)); // Retorna -1 se ainda n existir e a pos do que existe se existir
 	if (posAux == -1) {
 
 		*contadorIndexSecundario += 1;
 		(*index) = (index_s*) realloc((*index), (*contadorIndexSecundario)*sizeof(index_s));
-		(*index)[*contadorIndexSecundario-1].pos = insereListaInvertida(aluno.numUSP, posAux, (contador-1));
+		(*index)[*contadorIndexSecundario-1].pos = insereListaInvertida(aluno.numUSP, posAux, (contador-1)); // Retorna o local que foi inserido
 		strcpy((*index)[*contadorIndexSecundario-1].sobrenome, aluno.sobrenome);
 
-		qsort((*index), *contadorIndexSecundario, sizeof(index_s), qsortCompararIndexSec);
+		qsort((*index), *contadorIndexSecundario, sizeof(index_s), qsortCompararIndexSec); // Ordena index secundario
 	} else {
 		insereListaInvertida(aluno.numUSP, posAux, (contador-1));
 	}
@@ -85,8 +84,7 @@ void insereIndexSec(FILE *arq, index_s **index, listaInvertidaElem **listaInvert
 
 }
 
-int qsortCompararIndexSec(const void *a, const void *b) {
-	// return ( (*(index_s*)a).chavePrimaria - (*(index_s*)b).chavePrimaria );;
+int qsortCompararIndexSec(const void *a, const void *b) { // Func de comparação pro qsort
 	return strcmp((*(index_s*)a).sobrenome, (*(index_s*)b).sobrenome);
 }
 
@@ -98,7 +96,7 @@ tipoAluno* leituraDosDadosDoAluno() {
 	printf("\nPrimeiro nome : ");
 	scanf("%s", aluno->nome);
 	printf("\nSobrenome : ");
-	scanf("\n%[^\n]s", aluno->sobrenome);
+	scanf("\n%[^\n]s", aluno->sobrenome); // Leitura de sobrenomes simples e compostos
 	printf("\nAbreviacao do curso (BCC, BSI, ESTAT...) : ");
 	scanf("%s", aluno->curso);
 	printf("\nNota : ");
@@ -114,10 +112,7 @@ void insereRegistro(FILE *arq, tipoAluno aluno) {
 }
 
 int pesquisaIndex(index_p *indexPrimario, int nusp, int contador) {
-	/* Aqui a pesquisa deve ser feita pela chave primária no índice por meio de uma busca binária para, então, encontrado o RRN, dar um seek no arquivo para recuperar o registro*/
-	if (nusp < 0) {
-        return INVALID_POS;
-    }
+	if (nusp < 0) return INVALID_POS;
 
     int i = 0;
 	int f = contador;
@@ -132,34 +127,33 @@ int pesquisaIndex(index_p *indexPrimario, int nusp, int contador) {
 		else if (nusp > indexPrimario[meio].chavePrimaria) i = meio+1;
 		else f = meio-1;
 	}
-	return INVALID_POS; // Se n encontrar retorna invalido
+	return -1; // Se n encontrar retorna -1 para saber que n encontrou
 }
 
 int pesquisaChaveSecundaria(index_s *index, char *sobrenome, int *contadorIndexSecundario) {
-	/* Dado um sobrenome (ou parte dele), este método deverá verificar o índice secundário e retornar referências aos registros que contém este sobrenome */
     // Retornar -1 se não tiver retornar o valor da pos daquela egiao
 
-    int tamanho = *contadorIndexSecundario; // talvez
     int i;
-
-    for (i = 0; i < tamanho; i++) {
-        if (strstr(index[i].sobrenome, sobrenome) != NULL) {
+	// Busca sequencial
+    for (i = 0; i < *contadorIndexSecundario; i++) {
+        if (strstr(sobrenome, index[i].sobrenome)) {
 			return (index[i].pos);
 		}
     }
-    return -1; // retorna menos 1 se não existir
+    return -1; // retorna menos -1 se não encontrar
 }
 
 listaInvertidaElem* leituraDaListaInvertida() {
 
     FILE *arq = fopen("lista_invertida.dat", "r+");
     if (arq == NULL) {
-		printf("\n\n***Lista invertida não existe para leitura***\n\n");
+		printf("\n\n*** Lista invertida não existe para leitura ***\n\n");
 		return NULL;
 	}
 
     fseek(arq, 0, SEEK_END);
-    int contador = ((int) ftell(arq))/sizeof(listaInvertidaElem);
+	// Pega a quantidade de bytes do arquivo e divide pelo tamanho de bytes do elemento
+    int contador = ((int) ftell(arq))/sizeof(listaInvertidaElem); // Pega a quantidade de registros no arquivo
     rewind(arq);
 
     listaInvertidaElem *listaInvertida = (listaInvertidaElem*) calloc(contador, sizeof(listaInvertidaElem));
@@ -172,15 +166,15 @@ listaInvertidaElem* leituraDaListaInvertida() {
 int insereListaInvertida(int nusp, int pos, int tamanhoDaLista) {
     listaInvertidaElem *lista = leituraDaListaInvertida();
     FILE *arq = fopen("lista_invertida.dat", "w+");
-    int auxPos = pos;
+    int auxPos = pos; // Auxiliar para ir alterando a posição ao percorrer ja existentes
 	lista = (listaInvertidaElem*) realloc(lista, (tamanhoDaLista+1)*sizeof(listaInvertidaElem));
 
 	lista[tamanhoDaLista].NUSP = nusp;
 	lista[tamanhoDaLista].posDoProximo = -1;
 
-    if (pos != -1) { // Se já existir um com o mesmo sobrenome, atualizar o a posicao do proximo do ultimo e registrar
-        while (lista[auxPos].posDoProximo != -1) auxPos = lista[auxPos].posDoProximo;
-        lista[auxPos].posDoProximo = tamanhoDaLista;
+    if (pos != -1) { // Se já existir um com o mesmo sobrenome, atualizar a posicao do proximo do ultimo e registra
+        while (lista[auxPos].posDoProximo != -1) auxPos = lista[auxPos].posDoProximo; // Percorre
+        lista[auxPos].posDoProximo = tamanhoDaLista; // Registra pos do adicionado
     }
 
 	fwrite(lista, sizeof(listaInvertidaElem), tamanhoDaLista+1, arq);
@@ -189,7 +183,8 @@ int insereListaInvertida(int nusp, int pos, int tamanhoDaLista) {
     return tamanhoDaLista;
 }
 
-tipoChave* pesquisaListaInvertida(listaInvertidaElem *listaInvertida, int pos, int tamanhoDaLista, int *contadorDeTamanho) { // Retorna a posição do sobrenome
+// Retorna um vetor de NUSP da lista que começa com o elemento na pos passada
+tipoChave* pesquisaListaInvertida(listaInvertidaElem *listaInvertida, int pos, int tamanhoDaLista, int *contadorDeTamanho) {
 	listaInvertida = leituraDaListaInvertida();
     if (tamanhoDaLista < pos) return NULL;
 
@@ -203,20 +198,20 @@ tipoChave* pesquisaListaInvertida(listaInvertidaElem *listaInvertida, int pos, i
         listaDeChaves = (tipoChave*) realloc(listaDeChaves, contador+1);
         pos = listaInvertida[pos].posDoProximo;
 
-    } while(pos != -1 && pos != -2);
+    } while(pos != -1 && pos != -2); // Checa se tem proximo e se n foi deletado
 
-	if (pos == -2) printf("Esse cadastro foi deletado !!!\n");
+	if (pos == -2) printf("Esse cadastro foi deletado !!!\n"); // Se foi deletado fala que foi deletado
 
-	*contadorDeTamanho = contador;
+	*contadorDeTamanho = contador; // Atualiza tamanho do vetor a ser retornado
 
     return listaDeChaves;
 }
 
-tipoAluno* pesquisaRegistro(FILE *arq, int pos) {
+tipoAluno* pesquisaRegistro(FILE *arq, int pos) { // Le o aluno da posição passada no arquivo
     if (pos == -1) return NULL;
 	tipoAluno *aluno = (tipoAluno*) calloc(1, sizeof(tipoAluno));
 
-	fseek(arq, pos, SEEK_SET); // mudei de sizeof(tipoAluno)*pos para só pos
+	fseek(arq, pos, SEEK_SET);
 
 	fread(aluno, sizeof(tipoAluno), 1, arq);
 
@@ -227,9 +222,9 @@ tipoAluno* pesquisaRegistro(FILE *arq, int pos) {
 void removeRegistro(index_p **indexPrimario, index_s **indexSecundario, int nusp, int *contadorIndexPrimario,
 						int *contadorIndexSecundario) {
 	/* Pode ser implementada apenas uma remoção lógica */
-	int posEmBytesNoArquivo = pesquisaIndex((*indexPrimario), nusp, *contadorIndexPrimario);
+	int posEmBytesNoArquivo = pesquisaIndex((*indexPrimario), nusp, *contadorIndexPrimario); // Pega posição no arquivo
 
-	if (posEmBytesNoArquivo == -1) {
+	if (posEmBytesNoArquivo == -1) { // Se não encontrar
 		printf("Aluno não encontrado no index primário !!!\n");
 	} else {
 		removeArquivo(indexPrimario, posEmBytesNoArquivo, contadorIndexPrimario);
@@ -245,13 +240,13 @@ void removeArquivo(index_p **index, int posEmBytesNoArquivo, int *contador) {
 	FILE *arq = fopen("alunos.dat", "r+");
 	if (!arq) printf("O arquivo não tem registros para remover !!!\n");
 	else {
-		fseek(arq, posEmBytesNoArquivo, SEEK_SET);
-		fread(&aluno, sizeof(tipoAluno), 1, arq);
+		fseek(arq, posEmBytesNoArquivo, SEEK_SET); // Vai ate o registro
+		fread(&aluno, sizeof(tipoAluno), 1, arq); // Le o registro
 
-		aluno.nota = -1;
+		aluno.nota = -1; // Marcação de que foi deletado
 
-		fseek(arq, posEmBytesNoArquivo, SEEK_SET);
-		fwrite(&aluno, sizeof(tipoAluno), 1, arq);
+		fseek(arq, posEmBytesNoArquivo, SEEK_SET); // Vai ate o registro
+		fwrite(&aluno, sizeof(tipoAluno), 1, arq); // Sobreescreve o registro
 	}
 	fclose(arq);
 
@@ -272,25 +267,28 @@ void removeIndexSecundario(index_s **index, int posEmBytesNoArquivo, int *contad
 		fread(&aluno, sizeof(tipoAluno), 1, arq);
 
 		posAux = pesquisaChaveSecundaria((*index), aluno.sobrenome, contador);
-		if (posAux == -1) {
+		if (posAux == -1) { // Não encontrado na chave secundaria
 			printf("Erro, aluno procurado não encontrado nas chaves secundárias !!!\n");
 		} else {
 
-			if (!arqListaInvertida) printf("Lista invertida não existe !!!"); // verifica se o arquivo existe
+			if (!arqListaInvertida) printf("Lista invertida não existe !!!"); // Verifica se o arquivo existe
 			else {
-				fseek(arqListaInvertida, posAux*sizeof(listaInvertidaElem), SEEK_SET);
-				fread(&alunoNaListaInvertida, sizeof(listaInvertidaElem), 1, arqListaInvertida);
+				// Vai até o 1 elem da lista invertida daquele sobrenome
+				fseek(arqListaInvertida, posAux*sizeof(listaInvertidaElem), SEEK_SET); 
+				fread(&alunoNaListaInvertida, sizeof(listaInvertidaElem), 1, arqListaInvertida); // Leitura do registro
 
-				temp = posAux;
-				while (alunoNaListaInvertida.NUSP != aluno.numUSP && alunoNaListaInvertida.posDoProximo != -1) {
-					posDoUltimoEncontrado = temp;
-					temp = alunoNaListaInvertida.posDoProximo;
-					fseek(arqListaInvertida, alunoNaListaInvertida.posDoProximo*sizeof(listaInvertidaElem), SEEK_SET);
-					fread(&alunoNaListaInvertida, sizeof(listaInvertidaElem), 1, arqListaInvertida);
+				temp = posAux; // Guarda aonde tem que sobreescrever
+
+				// Para quando encontrar ou não tiver próximo
+				while (alunoNaListaInvertida.NUSP != aluno.numUSP && alunoNaListaInvertida.posDoProximo != -1) { 
+					posDoUltimoEncontrado = temp; // Guarda pos do anterior
+					temp = alunoNaListaInvertida.posDoProximo; // Guarda pos do atual
+					fseek(arqListaInvertida, alunoNaListaInvertida.posDoProximo*sizeof(listaInvertidaElem), SEEK_SET); // Vai no atual
+					fread(&alunoNaListaInvertida, sizeof(listaInvertidaElem), 1, arqListaInvertida); // Leitura do atual
 					
 				}
 
-				if (alunoNaListaInvertida.NUSP == aluno.numUSP) { // achou o que queriamos
+				if (alunoNaListaInvertida.NUSP == aluno.numUSP) { // Achou o que queriamos
 					fseek(arqListaInvertida, posDoUltimoEncontrado*sizeof(listaInvertidaElem), SEEK_SET);
 					fread(&alunoAnterior, sizeof(listaInvertidaElem), 1, arqListaInvertida);
 
@@ -298,13 +296,15 @@ void removeIndexSecundario(index_s **index, int posEmBytesNoArquivo, int *contad
 						alunoAnterior.posDoProximo = alunoNaListaInvertida.posDoProximo; // Marca o proximo no anterior
 					else alunoAnterior.posDoProximo = -1; // Marca que não tem próximo
 
+					// Vai no anterior e sobreescreve
 					fseek(arqListaInvertida, posDoUltimoEncontrado*sizeof(listaInvertidaElem), SEEK_SET);
 					fwrite(&alunoAnterior, sizeof(listaInvertidaElem), 1, arqListaInvertida);
 
 					alunoNaListaInvertida.posDoProximo = -2; // -2 significara que o usuário foi deletado;
 
+					// Vai no que deve ser deletado e sobreescreve
 					fseek(arqListaInvertida, temp*sizeof(listaInvertidaElem), SEEK_SET);
-					fwrite(&alunoNaListaInvertida, sizeof(listaInvertidaElem), 1, arqListaInvertida); // Sobreescreve deletado
+					fwrite(&alunoNaListaInvertida, sizeof(listaInvertidaElem), 1, arqListaInvertida);
 
 				} else { // Não encontrou e não tem mais nenhum na lista invertida !!!
 					printf("Erro, aluno procurado não encontrado na lista invertida !!!\n");
